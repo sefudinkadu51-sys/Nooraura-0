@@ -1111,6 +1111,24 @@ function submitContactForm(event) {
 }
 
 // Admin Functions
+async function updateWebsiteSettings(event) {
+  event.preventDefault();
+  const obj = {
+    store_name: document.getElementById("websiteStoreName").value,
+    store_tagline: document.getElementById("websiteTagline").value,
+    store_description: document.getElementById("websiteDescription").value,
+    about_title: document.getElementById("websiteAboutTitle").value,
+    about_description: document.getElementById("websiteAboutDescription").value,
+    whatsapp_number: document.getElementById("websiteWhatsapp").value,
+    email: document.getElementById("websiteEmail").value,
+    phone: document.getElementById("websitePhone").value,
+    address: document.getElementById("websiteAddress").value
+  };
+  await saveSettings(obj); // ← now saves to Supabase
+  showNotification("Settings saved!", "success");
+  updateWebsiteContent(); // ← refresh UI instantly
+}
+
 function toggleUserMenu() {
   // Simple user menu toggle - can be expanded
   showNotification("User menu feature coming soon!", "info")
