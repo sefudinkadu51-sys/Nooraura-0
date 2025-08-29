@@ -1,4 +1,9 @@
+
+
+
 // Global Variables
+import { getProducts, getSettings, addProduct, updateProduct, deleteProduct, saveSettings, onProductsChange, onSettingsChange } from './supabase.js';
+
 let products = []
 let cart = JSON.parse(localStorage.getItem("cart")) || []
 let wishlist = JSON.parse(localStorage.getItem("wishlist")) || []
@@ -19,8 +24,9 @@ const settings = JSON.parse(localStorage.getItem("settings")) || {
 
   // Contact Info
   whatsappNumber: "+918780813692",
-  email: "sefudinkadu@gmail.com",
+  email: "hello@aurafashion.com",
   phone: "+91 8780813692",
+  address: "123 Fashion Street, Mumbai, Maharashtra 400001",
 
   // Social Media Links
   instagramUrl: "https://instagram.com/aurafashion",
@@ -51,7 +57,38 @@ const settings = JSON.parse(localStorage.getItem("settings")) || {
 }
 
 // Initialize
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
+  // Apply saved website settings
+  const savedSettings = getWebsiteSettings()
+  applyWebsiteSettings(savedSettings)
+  
+  // Hide loading screen
+  setTimeout(() => {
+    document.getElementById("loadingScreen").classList.add("hidden")
+  }, 2000)
+
+  // Generate products if not exists
+  if (!localStorage.getItem("products")) {
+    products = generateProducts()
+    localStorage.setItem("products", JSON.stringify(products))
+  } else {
+    products = JSON.parse(localStorage.getItem("products"))
+  }
+
+  // Setup event listeners
+  setupEventListeners()
+
+  // Initialize UI
+  displayProducts()
+  updateCartUI()
+  updateWishlistUI()
+  updateWebsiteContent()
+  animateCounters()
+
+  // Setup scroll effects
+  setupScrollEffects()
+
+  // Initialize the website
   initializeApp()
 })
 
@@ -61,8 +98,9 @@ function initializeApp() {
     document.getElementById("loadingScreen").classList.add("hidden")
   }, 2000)
 
+  // Generate products if not exists
   if (!localStorage.getItem("products")) {
-    products = [] // Start with empty products array
+    products = generateProducts()
     localStorage.setItem("products", JSON.stringify(products))
   } else {
     products = JSON.parse(localStorage.getItem("products"))
@@ -125,6 +163,91 @@ function updateWebsiteContent() {
 
   // Update page title
   document.title = `${settings.storeName} - ${settings.storeTagline}`
+}
+
+// Generate Products
+function generateProducts() {
+  const categories = ["festive", "casual", "party", "wedding", "traditional"]
+  const badges = ["New", "Sale", "Bestseller", "Trending", "Premium", "Hot", "Limited"]
+  const names = [
+    "Royal Silk Kurta Set",
+    "Cotton Casual Kurta",
+    "Designer Party Wear",
+    "Wedding Special Set",
+    "Festive Anarkali Set",
+    "Casual Printed Kurta",
+    "Elegant Party Kurta",
+    "Traditional Set",
+    "Embroidered Silk Kurta",
+    "Floral Print Kurta",
+    "Golden Thread Work",
+    "Mirror Work Kurta",
+    "Chiffon Party Wear",
+    "Georgette Anarkali",
+    "Cotton Straight Kurta",
+    "Palazzo Set",
+    "Sharara Suit",
+    "Gharara Set",
+    "A-Line Kurta",
+    "Asymmetric Kurta",
+  ]
+
+  const descriptions = [
+    "Exquisite craftsmanship meets contemporary design in this stunning piece.",
+    "Perfect blend of comfort and style, crafted with premium quality fabric.",
+    "Handcrafted with attention to detail, featuring intricate embroidery.",
+    "Premium quality fabric with elegant finish, designed for special occasions.",
+    "Traditional artistry with modern appeal, showcasing rich heritage.",
+    "Comfortable fit for all-day wear, made with breathable fabric.",
+    "Stunning embellishments that reflect the beauty of traditional fashion.",
+    "Versatile piece for multiple occasions, from casual to festive.",
+  ]
+
+  const features = [
+    ["Premium Quality Fabric", "Comfortable Fit", "Easy Care", "Durable Construction"],
+    ["Handcrafted Details", "Breathable Material", "Color Fast", "Wrinkle Resistant"],
+    ["Traditional Design", "Modern Cut", "Perfect Finish", "Long Lasting"],
+    ["Elegant Embroidery", "Soft Touch", "Machine Washable", "Fade Resistant"],
+  ]
+
+  const generatedProducts = []
+
+  for (let i = 1; i <= 100; i++) {
+    const basePrice = Math.floor(Math.random() * 8000) + 1000
+    const originalPrice = basePrice + Math.floor(Math.random() * 2000) + 500
+    const category = categories[Math.floor(Math.random() * categories.length)]
+    const nameIndex = Math.floor(Math.random() * names.length)
+
+    // Generate multiple images
+    const imageCount = Math.floor(Math.random() * 4) + 2
+    const images = []
+    for (let j = 0; j < imageCount; j++) {
+      images.push(`https://picsum.photos/400/500?random=${i}${j}`)
+    }
+
+    generatedProducts.push({
+      id: i,
+      name: `${names[nameIndex]} ${i}`,
+      description: descriptions[Math.floor(Math.random() * descriptions.length)],
+      fullDescription: `This beautiful ${category} kurta set represents the perfect fusion of traditional Indian craftsmanship and contemporary fashion. Made with premium quality fabric, it features intricate details and elegant finishing.`,
+      price: basePrice,
+      originalPrice: Math.random() > 0.3 ? originalPrice : null,
+      category: category,
+      sizes: ["S", "M", "L", "XL", "XXL"],
+      badge: Math.random() > 0.4 ? badges[Math.floor(Math.random() * badges.length)] : null,
+      rating: (Math.random() * 2 + 3).toFixed(1),
+      reviews: Math.floor(Math.random() * 200) + 10,
+      image: images[0],
+      images: images,
+      features: features[Math.floor(Math.random() * features.length)],
+      fabric: ["Cotton", "Silk", "Georgette", "Chiffon", "Rayon"][Math.floor(Math.random() * 5)],
+      care: ["Hand wash recommended", "Machine wash cold", "Dry clean only"][Math.floor(Math.random() * 3)],
+      featured: Math.random() > 0.8,
+      dateAdded: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+    })
+  }
+
+  return generatedProducts
 }
 
 // Event Listeners
@@ -1151,7 +1274,7 @@ function adminLogout() {
 }
 
 function switchAdminTab(tabName) {
-  // Remove active class from all tabs
+  // Simple user menu toggle - can be expanded
   document.querySelectorAll(".admin-tab").forEach((tab) => tab.classList.remove("active"))
   event.target.classList.add("active")
 
@@ -1168,249 +1291,226 @@ function loadAdminContent(tabName) {
   switch (tabName) {
     case "dashboard":
       content.innerHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">${products.length}</div>
-                        <div class="stat-label">Total Products</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${Math.floor(Math.random() * 200) + 100}</div>
-                        <div class="stat-label">Total Orders</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">₹${(Math.floor(Math.random() * 500000) + 200000).toLocaleString()}</div>
-                        <div class="stat-label">Total Revenue</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">${Math.floor(Math.random() * 150) + 50}</div>
-                        <div class="stat-label">Happy Customers</div>
-                    </div>
-                </div>
-                
-                <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md); margin-top: 2rem;">
-                    <h3 style="margin-bottom: 1.5rem;">Quick Actions</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <button class="btn btn-primary" onclick="switchAdminTab('products')">
-                            <i class="fas fa-box"></i> Manage Products
-                        </button>
-                        <button class="btn btn-primary" onclick="addNewProduct()">
-                            <i class="fas fa-plus"></i> Add New Product
-                        </button>
-                        <button class="btn btn-primary" onclick="exportData()">
-                            <i class="fas fa-download"></i> Export Data
-                        </button>
-                        <button class="btn btn-primary" onclick="switchAdminTab('website')">
-                            <i class="fas fa-globe"></i> Website Settings
-                        </button>
-                    </div>
-                </div>
-            `
-      break
-
-    case "products":
-      content.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h3>Manage Products</h3>
-                    <div>
-                        <input type="text" id="adminProductSearch" placeholder="Search products..." style="padding: 0.5rem; border: 2px solid var(--gray-300); border-radius: var(--radius-md); margin-right: 1rem;">
-                        <button class="btn btn-primary" onclick="addNewProduct()">
-                            <i class="fas fa-plus"></i> Add Product
-                        </button>
-                    </div>
-                </div>
-                <div style="background: var(--white); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); max-height: 500px; overflow-y: auto;">
-                    ${products
-                      .map(
-                        (product) => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--gray-200);">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 0.3rem;">${product.name}</div>
-                                <div style="color: var(--gray-600); font-size: 0.9rem;">
-                                    ₹${product.price.toLocaleString()} • ${product.category} • ${product.sizes.join(", ")}
-                                    ${product.badge ? ` • ${product.badge}` : ""}
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-outline" onclick="editProduct(${product.id})" style="padding: 0.5rem 1rem;">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn" onclick="deleteProduct(${product.id})" style="background: #dc3545; color: white; padding: 0.5rem 1rem;">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                    `,
-                      )
-                      .join("")}
-                </div>
-            `
-
-      // Add search functionality
-      document.getElementById("adminProductSearch").addEventListener("input", function () {
-        filterAdminProducts(this.value)
-      })
-      break
-
-    case "orders":
-      content.innerHTML = `
-                <h3 style="margin-bottom: 2rem;">Order Management</h3>
-                <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md); text-align: center;">
-                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
-                    <h4 style="margin-bottom: 1rem;">Order Management System</h4>
-                    <p style="color: var(--gray-600); margin-bottom: 2rem;">Advanced order management features coming soon!</p>
-                    <button class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Order Management
-                    </button>
-                </div>
-            `
+        <div class="admin-dashboard">
+          <div class="dashboard-stats">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-box"></i></div>
+              <div class="stat-info">
+                <div class="stat-number">${products.length}</div>
+                <div class="stat-label">Total Products</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+              <div class="stat-info">
+                <div class="stat-number">${cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
+                <div class="stat-label">Items in Cart</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-heart"></i></div>
+              <div class="stat-info">
+                <div class="stat-number">${wishlist.length}</div>
+                <div class="stat-label">Wishlist Items</div>
+              </div>
+            </div>
+          </div>
+          <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-buttons">
+              <button class="btn btn-primary" onclick="addNewProduct()">
+                <i class="fas fa-plus"></i> Add New Product
+              </button>
+              <button class="btn btn-outline" onclick="switchAdminTab('website')">
+                <i class="fas fa-edit"></i> Edit Website Content
+              </button>
+              <button class="btn btn-outline" onclick="switchAdminTab('products')">
+                <i class="fas fa-box"></i> Manage Products
+              </button>
+            </div>
+          </div>
+        </div>
+      `
       break
 
     case "website":
-      content.innerHTML = `
-                <h3 style="margin-bottom: 2rem;">Website Settings</h3>
-                <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
-                    <form onsubmit="updateWebsiteSettings(event)">
-                        <div class="form-grid">
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Basic Information</h4>
-                                <div class="form-group">
-                                    <label>Store Name</label>
-                                    <input type="text" id="websiteStoreName" value="${settings.storeName}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Store Tagline</label>
-                                    <input type="text" id="websiteTagline" value="${settings.storeTagline}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Store Description</label>
-                                    <textarea id="websiteDescription" rows="3" required>${settings.storeDescription}</textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>About Title</label>
-                                    <input type="text" id="websiteAboutTitle" value="${settings.aboutTitle}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>About Description</label>
-                                    <textarea id="websiteAboutDescription" rows="4" required>${settings.aboutDescription}</textarea>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Contact Information</h4>
-                                <div class="form-group">
-                                    <label>WhatsApp Number</label>
-                                    <input type="text" id="websiteWhatsapp" value="${settings.whatsappNumber}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Email Address</label>
-                                    <input type="email" id="websiteEmail" value="${settings.email}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Phone Number</label>
-                                    <input type="text" id="websitePhone" value="${settings.phone}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Store Address</label>
-                                    <textarea id="websiteAddress" rows="3" required>${settings.address}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
-                            <i class="fas fa-save"></i> Save Website Settings
-                        </button>
-                    </form>
-                </div>
-            `
+      loadWebsiteSettings()
       break
 
-    case "social":
-      content.innerHTML = `
-                <h3 style="margin-bottom: 2rem;">Social Media Settings</h3>
-                <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
-                    <form onsubmit="updateSocialSettings(event)">
-                        <div class="form-grid">
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Social Media Links</h4>
-                                <div class="form-group">
-                                    <label><i class="fab fa-instagram"></i> Instagram URL</label>
-                                    <input type="url" id="socialInstagramUrl" value="${settings.instagramUrl}" placeholder="https://instagram.com/yourusername">
-                                </div>
-                                <div class="form-group">
-                                    <label><i class="fab fa-facebook"></i> Facebook URL</label>
-                                    <input type="url" id="socialFacebookUrl" value="${settings.facebookUrl}" placeholder="https://facebook.com/yourpage">
-                                </div>
-                                <div class="form-group">
-                                    <label><i class="fab fa-pinterest"></i> Pinterest URL</label>
-                                    <input type="url" id="socialPinterestUrl" value="${settings.pinterestUrl}" placeholder="https://pinterest.com/yourusername">
-                                </div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Additional Links</h4>
-                                <div class="form-group">
-                                    <label><i class="fab fa-twitter"></i> Twitter URL</label>
-                                    <input type="url" id="socialTwitterUrl" value="${settings.twitterUrl}" placeholder="https://twitter.com/yourusername">
-                                </div>
-                                <div class="form-group">
-                                    <label><i class="fab fa-whatsapp"></i> WhatsApp URL</label>
-                                    <input type="url" id="socialWhatsappUrl" value="${settings.whatsappUrl}" placeholder="https://wa.me/yourphonenumber">
-                                </div>
-                                <div class="form-group">
-                                    <label>Social Media Bio</label>
-                                    <textarea rows="3" placeholder="Short description for social media profiles">${settings.socialBio || ""}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
-                            <i class="fas fa-save"></i> Save Social Media Settings
-                        </button>
-                    </form>
-                </div>
-            `
+    case "products":
+      loadProductsManagement()
       break
 
-    case "settings":
-      content.innerHTML = `
-                <h3 style="margin-bottom: 2rem;">Admin Settings</h3>
-                <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
-                    <form onsubmit="updateAdminSettings(event)">
-                        <div class="form-grid">
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Admin Credentials</h4>
-                                <div class="form-group">
-                                    <label>Admin Username</label>
-                                    <input type="text" id="settingsUsername" value="${settings.adminUsername}" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>New Password (leave blank to keep current)</label>
-                                    <input type="password" id="settingsPassword" placeholder="Enter new password">
-                                </div>
-                                <div class="form-group">
-                                    <label>Confirm New Password</label>
-                                    <input type="password" id="settingsPasswordConfirm" placeholder="Confirm new password">
-                                </div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 1rem;">Website Colors</h4>
-                                <div class="form-group">
-                                    <label>Primary Color</label>
-                                    <input type="color" id="settingsPrimaryColor" value="${settings.primaryColor}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Secondary Color</label>
-                                    <input type="color" id="settingsSecondaryColor" value="${settings.secondaryColor}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Accent Color</label>
-                                    <input type="color" id="settingsAccentColor" value="${settings.accentColor}">
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
-                            <i class="fas fa-save"></i> Save Admin Settings
-                        </button>
-                    </form>
-                </div>
-            `
-      break
+    default:
+      content.innerHTML = `<p>Content for ${tabName} coming soon...</p>`
+  }
+}
+
+function loadWebsiteSettings() {
+  const content = document.getElementById("adminContent")
+  const currentSettings = getWebsiteSettings()
+  
+  content.innerHTML = `
+    <h3 style="margin-bottom: 2rem;">Website Settings</h3>
+    <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
+      <form onsubmit="saveWebsiteSettings(event)">
+        <div class="form-grid">
+          <div>
+            <div class="form-group">
+              <label>Website Name</label>
+              <input type="text" id="websiteName" value="${currentSettings.siteName}" required>
+            </div>
+            <div class="form-group">
+              <label>Website Tagline</label>
+              <input type="text" id="websiteTagline" value="${currentSettings.siteTagline}" required>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="websitePhone" value="${currentSettings.phone}" required>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="websiteEmail" value="${currentSettings.email}" required>
+            </div>
+            <div class="form-group">
+              <label>WhatsApp Number</label>
+              <input type="text" id="whatsappNumber" value="${currentSettings.whatsappNumber}" required>
+            </div>
+          </div>
+          <div>
+            <div class="form-group">
+              <label>About Title</label>
+              <input type="text" id="aboutTitle" value="${currentSettings.aboutTitle}" required>
+            </div>
+            <div class="form-group">
+              <label>About Description</label>
+              <textarea id="aboutDescription" rows="4" required>${currentSettings.aboutDescription}</textarea>
+            </div>
+            <div class="form-group">
+              <label>Footer Description</label>
+              <textarea id="footerDescription" rows="3" required>${currentSettings.footerDescription}</textarea>
+            </div>
+            <div class="form-group">
+              <label>Instagram URL</label>
+              <input type="url" id="instagramUrl" value="${currentSettings.socialLinks.instagram}">
+            </div>
+            <div class="form-group">
+              <label>Facebook URL</label>
+              <input type="url" id="facebookUrl" value="${currentSettings.socialLinks.facebook}">
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">
+            <i class="fas fa-save"></i> Save Website Settings
+          </button>
+          <button type="button" class="btn btn-outline" onclick="switchAdminTab('dashboard')" style="flex: 1;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </button>
+        </div>
+      </form>
+    </div>
+  `
+}
+
+function getWebsiteSettings() {
+  const saved = localStorage.getItem('websiteSettings')
+  if (saved) {
+    return JSON.parse(saved)
+  }
+  
+  // Default settings from current website
+  return {
+    siteName: document.getElementById('siteName')?.textContent || 'AURA FASHION',
+    siteTagline: document.getElementById('siteTagline')?.textContent || 'Premium Collection',
+    phone: document.getElementById('headerPhone')?.textContent || '+91 8780813692',
+    email: document.getElementById('headerEmail')?.textContent || 'hello@aurafashion.com',
+    whatsappNumber: '+91 8780813692',
+    aboutTitle: document.getElementById('aboutTitle')?.textContent || 'AURA FASHION Story',
+    aboutDescription: document.getElementById('aboutDescription')?.textContent || 'AURA FASHION represents the perfect fusion of traditional Indian craftsmanship and contemporary fashion.',
+    footerDescription: document.getElementById('footerDescription')?.textContent || 'Premium Kurta Collection celebrating traditional Indian fashion with contemporary elegance.',
+    socialLinks: {
+      instagram: '#',
+      facebook: '#',
+      pinterest: '#',
+      whatsapp: '#',
+      twitter: '#'
+    }
+  }
+}
+
+function saveWebsiteSettings(event) {
+  event.preventDefault()
+  
+  const settings = {
+    siteName: document.getElementById('websiteName').value,
+    siteTagline: document.getElementById('websiteTagline').value,
+    phone: document.getElementById('websitePhone').value,
+    email: document.getElementById('websiteEmail').value,
+    whatsappNumber: document.getElementById('whatsappNumber').value,
+    aboutTitle: document.getElementById('aboutTitle').value,
+    aboutDescription: document.getElementById('aboutDescription').value,
+    footerDescription: document.getElementById('footerDescription').value,
+    socialLinks: {
+      instagram: document.getElementById('instagramUrl').value,
+      facebook: document.getElementById('facebookUrl').value,
+      pinterest: '#',
+      whatsapp: `https://wa.me/${document.getElementById('whatsappNumber').value.replace(/[^0-9]/g, '')}`,
+      twitter: '#'
+    }
+  }
+  
+  localStorage.setItem('websiteSettings', JSON.stringify(settings))
+  applyWebsiteSettings(settings)
+  showNotification('Website settings saved successfully!', 'success')
+  switchAdminTab('dashboard')
+}
+
+function applyWebsiteSettings(settings) {
+  // Update site name and tagline
+  const siteNameElements = document.querySelectorAll('#siteName, #footerName')
+  siteNameElements.forEach(el => el.textContent = settings.siteName)
+  
+  const siteTaglineElements = document.querySelectorAll('#siteTagline, #footerTagline')
+  siteTaglineElements.forEach(el => el.textContent = settings.siteTagline)
+  
+  // Update contact info
+  const phoneElements = document.querySelectorAll('#headerPhone')
+  phoneElements.forEach(el => el.textContent = settings.phone)
+  
+  const emailElements = document.querySelectorAll('#headerEmail')
+  emailElements.forEach(el => el.textContent = settings.email)
+  
+  // Update about section
+  const aboutTitleEl = document.getElementById('aboutTitle')
+  if (aboutTitleEl) aboutTitleEl.textContent = settings.aboutTitle
+  
+  const aboutDescEl = document.getElementById('aboutDescription')
+  if (aboutDescEl) aboutDescEl.textContent = settings.aboutDescription
+  
+  // Update footer description
+  const footerDescEl = document.getElementById('footerDescription')
+  if (footerDescEl) footerDescEl.textContent = settings.footerDescription
+  
+  // Update social links
+  const socialElements = {
+    instagram: document.querySelectorAll('#socialInstagram, #footerInstagram'),
+    facebook: document.querySelectorAll('#socialFacebook, #footerFacebook'),
+    whatsapp: document.querySelectorAll('#socialWhatsapp, #footerWhatsapp')
+  }
+  
+  Object.keys(socialElements).forEach(platform => {
+    socialElements[platform].forEach(el => {
+      if (settings.socialLinks[platform] && settings.socialLinks[platform] !== '#') {
+        el.href = settings.socialLinks[platform]
+      }
+    })
+  })
+  
+  // Update WhatsApp float button
+  const whatsappFloat = document.querySelector('.whatsapp-float')
+  if (whatsappFloat) {
+    whatsappFloat.href = `https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`
   }
 }
 
@@ -1461,29 +1561,12 @@ function addNewProduct() {
                         </div>
                         <div class="form-group">
                             <label>Product Images</label>
-                            <div style="margin-bottom: 1rem;">
-                                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                                    <h5 style="margin-bottom: 0.5rem; color: #28a745;">✅ Image Upload Options:</h5>
-                                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">1. <strong>Upload from device:</strong> Click "Choose Files" below</p>
-                                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">2. <strong>Use image URL:</strong> Paste direct image links in the text area</p>
-                                    <p style="font-size: 0.8rem; color: #6c757d;">Note: For public websites, image URLs work best (like from Google Drive, Dropbox, or image hosting sites)</p>
-                                </div>
-                            </div>
                             <div class="image-upload-area" onclick="document.getElementById('productImages').click()">
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Click to upload images from device</p>
+                                <p>Click to upload images or drag and drop</p>
                                 <small>You can upload multiple images (JPG, PNG, WebP)</small>
                             </div>
                             <input type="file" id="productImages" multiple accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
-                            
-                            <div style="margin-top: 1rem;">
-                                <label>Or paste image URLs (one per line):</label>
-                                <textarea id="imageUrls" rows="4" placeholder="https://example.com/image1.jpg
-https://example.com/image2.jpg
-https://example.com/image3.jpg" style="width: 100%; padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 8px; font-family: monospace; font-size: 0.9rem;"></textarea>
-                                <small style="color: #6c757d;">Tip: Use image hosting services like ImgBB, Imgur, or Google Drive public links</small>
-                            </div>
-                            
                             <div class="image-preview" id="imagePreview"></div>
                         </div>
                         <div class="form-group">
@@ -1505,7 +1588,7 @@ https://example.com/image3.jpg" style="width: 100%; padding: 0.5rem; border: 2px
     `
 }
 
-// Enhanced Image upload handler for public websites
+// Image upload handler
 function handleImageUpload(input) {
   const files = Array.from(input.files)
   const preview = document.getElementById("imagePreview")
@@ -1539,22 +1622,9 @@ function removeImagePreview(button) {
 function saveNewProduct(event) {
   event.preventDefault()
 
-  // Get uploaded images from file input
+  // Get uploaded images
   const imageElements = document.querySelectorAll("#imagePreview img")
-  const uploadedImages = Array.from(imageElements).map((img) => img.src)
-
-  // Get images from URL textarea
-  const imageUrls = document
-    .getElementById("imageUrls")
-    .value.split("\n")
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0 && (url.startsWith("http://") || url.startsWith("https://")))
-
-  // Combine both sources
-  const allImages = [...uploadedImages, ...imageUrls]
-
-  // Use placeholder if no images provided
-  const finalImages = allImages.length > 0 ? allImages : [`https://picsum.photos/400/500?random=${Date.now()}`]
+  const images = Array.from(imageElements).map((img) => img.src)
 
   const newProduct = {
     id: Math.max(...products.map((p) => p.id)) + 1,
@@ -1573,8 +1643,8 @@ function saveNewProduct(event) {
     badge: document.getElementById("newProductBadge").value || null,
     rating: (Math.random() * 2 + 3).toFixed(1),
     reviews: Math.floor(Math.random() * 200) + 10,
-    image: finalImages[0],
-    images: finalImages,
+    image: images[0] || `https://picsum.photos/300/400?random=${Date.now()}`,
+    images: images.length > 0 ? images : [`https://picsum.photos/300/400?random=${Date.now()}`],
     features: ["Premium Quality Fabric", "Comfortable Fit", "Easy Care", "Durable Construction"],
     fabric: document.getElementById("newProductFabric").value || "Premium Cotton",
     care: "Machine wash cold",
@@ -1585,7 +1655,7 @@ function saveNewProduct(event) {
   products.push(newProduct)
   localStorage.setItem("products", JSON.stringify(products))
 
-  showNotification("Product added successfully! 🎉", "success")
+  showNotification("Product added successfully!", "success")
   switchAdminTab("products")
   displayProducts() // Refresh main product display
 }
@@ -1639,13 +1709,6 @@ function editProduct(productId) {
                         </div>
                         <div class="form-group">
                             <label>Product Images</label>
-                            <div style="margin-bottom: 1rem;">
-                                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                                    <h5 style="margin-bottom: 0.5rem; color: #28a745;">✅ Current Images:</h5>
-                                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">You can remove existing images and add new ones</p>
-                                    <p style="font-size: 0.8rem; color: #6c757d;">For public websites, image URLs work best</p>
-                                </div>
-                            </div>
                             <div class="image-preview" id="imagePreview">
                                 ${
                                   product.images && product.images.length > 0
@@ -1675,17 +1738,10 @@ function editProduct(productId) {
                             </div>
                             <div class="image-upload-area" onclick="document.getElementById('editProductImages').click()" style="margin-top: 1rem;">
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Click to upload new images from device</p>
+                                <p>Click to upload new images or drag and drop</p>
                                 <small>You can add more images or replace existing ones</small>
                             </div>
                             <input type="file" id="editProductImages" multiple accept="image/*" style="display: none;" onchange="handleImageUpload(this)">
-                            
-                            <div style="margin-top: 1rem;">
-                                <label>Or add image URLs (one per line):</label>
-                                <textarea id="editImageUrls" rows="4" placeholder="https://example.com/image1.jpg
-https://example.com/image2.jpg" style="width: 100%; padding: 0.5rem; border: 2px solid #e0e0e0; border-radius: 8px; font-family: monospace; font-size: 0.9rem;"></textarea>
-                                <small style="color: #6c757d;">Add new image URLs here - they will be added to existing images</small>
-                            </div>
                         </div>
                         <div class="form-group">
                             <label>Description</label>
@@ -1712,21 +1768,11 @@ function updateProduct(event, productId) {
   const productIndex = products.findIndex((p) => p.id === productId)
   if (productIndex === -1) return
 
-  // Get current images from preview
+  // Get current and new images - FIXED VERSION
   const imageElements = document.querySelectorAll(".image-preview img")
-  const currentImages = Array.from(imageElements).map((img) => img.src)
+  const allImages = Array.from(imageElements).map((img) => img.src)
 
-  // Get new images from URL textarea
-  const newImageUrls = document
-    .getElementById("editImageUrls")
-    .value.split("\n")
-    .map((url) => url.trim())
-    .filter((url) => url.length > 0 && (url.startsWith("http://") || url.startsWith("https://")))
-
-  // Combine current and new images
-  const allImages = [...currentImages, ...newImageUrls]
-
-  // Keep original images if no images provided
+  // Keep original images if no new images uploaded
   const finalImages = allImages.length > 0 ? allImages : products[productIndex].images
   const finalMainImage = allImages.length > 0 ? allImages[0] : products[productIndex].image
 
@@ -1749,7 +1795,7 @@ function updateProduct(event, productId) {
 
   localStorage.setItem("products", JSON.stringify(products))
 
-  showNotification("Product updated successfully! 🎉", "success")
+  showNotification("Product updated successfully!", "success")
   switchAdminTab("products")
   displayProducts() // Refresh main product display
 }
@@ -1885,3 +1931,45 @@ function closeAllOverlays() {
 
 // Initialize wishlist from localStorage
 wishlist = JSON.parse(localStorage.getItem("wishlist")) || []
+
+function loadProductsManagement() {
+  const content = document.getElementById("adminContent")
+  content.innerHTML = `
+        <h3 style="margin-bottom: 2rem;">Manage Products</h3>
+        <div style="background: var(--white); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-md);">
+            <div style="margin-bottom: 1rem;">
+                <input type="search" id="adminProductSearch" placeholder="Search products..." oninput="filterAdminProducts(this.value)" style="width: 100%; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+            </div>
+            <div style="max-height: 500px; overflow-y: auto;">
+                ${products
+                  .map(
+                    (product) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--gray-200);">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 0.3rem;">${product.name}</div>
+                                <div style="color: var(--gray-600); font-size: 0.9rem;">
+                                    ₹${product.price.toLocaleString()} • ${product.category} • ${product.sizes.join(", ")}
+                                    ${product.badge ? ` • ${product.badge}` : ""}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline" onclick="editProduct(${product.id})" style="padding: 0.5rem 1rem;">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn" onclick="deleteProduct(${product.id})" style="background: #dc3545; color: white; padding: 0.5rem 1rem;">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    `,
+                  )
+                  .join("")}
+            </div>
+            <div style="margin-top: 2rem; text-align: right;">
+                <button class="btn btn-primary" onclick="addNewProduct()">
+                    <i class="fas fa-plus"></i> Add New Product
+                </button>
+            </div>
+        </div>
+    `
+}
